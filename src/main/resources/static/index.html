@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="ISO-8859-1">
+<title>Currency Exchange Calculator</title>
+</head>
+<body>
+<!--EUR,JPY,GBP,AUD,CAD,CNY,MXN-->
+<h1>Welcome to Charles Lima's Currency Exchange Calculator!</h1>
+<br>
+<form id=currencyForm>
+	<label for="curr">Choose Base Currency:</label>
+	  <select name="currTypes" id="currTypes" multiple>
+	    <option value="USD">USD</option>
+	    <option value="EUR">EUR</option>
+	    <option value="JPY">JPY</option>
+	    <option value="GBP">GBP</option>
+	    <option value="AUD">AUD</option>
+	    <option value="CAD">CAD</option>
+	    <option value="CNY">CNY</option>
+	    <option value="MXN">MXN</option>
+	  </select>
+	  <br><br>
+	  <label>Type Currency Amount: </label>
+	  <input type="number" id="currValue" name="value">
+	  <br>
+	  <input type="reset" value="Submit" onClick="submitButtonPressed()">
+  </form>
+  <br>
+
+	<label for="USD">US Dollar USD:</label>
+	<b id="USDvalue"></b><br><br>
+	
+	<label for="EUR">Euro EUR:</label>
+	<b id="EURvalue"></b><br><br>
+	
+	<label for="JPY">Japanese Yen JPY:</label>
+	<b id="JPYvalue"></b><br><br>
+	
+	<label for="GBP">British Pound Sterling GBP:</label>
+	<b id="GBPvalue"></b><br><br>
+	
+	<label for="AUD">Australian Dollar AUD:</label>
+	<b id="AUDvalue"></b><br><br>
+	
+	<label for="CAD">Canadian Dollar CAD:</label>
+	<b id="CADvalue"></b><br><br>
+	
+	<label for="CNY">Chinese Yuan CNY:</label>
+	<b id="CNYvalue"></b><br><br>
+	
+	<label for="MXN">Mexican Peso MXN:</label>
+	<b id="MXNvalue"></b><br><br>
+
+<script>
+
+	function submitButtonPressed() {
+		console.log("submit");
+		let currencySelect = document.getElementById("currTypes");
+		let currencyInput = document.getElementById("currValue");
+		let selection = currencySelect.value;
+		let inputValue = currencyInput.value;
+		
+		if (selection != "" && inputValue != "") {
+			let id = selection + "value";
+			
+			let labelFromSelection = document.getElementById(id);
+			labelFromSelection.innerHTML = inputValue;
+			
+			sendExchangeData(currencySelect.value, currencyInput.value);
+		} else {
+			console.log("empty");
+		}
+	}
+	
+	function enterKeyPressed(event) {
+		var currencyID;
+		var amount;
+		if (event.keyCode == 13) {
+			currencyID = event.target.name;
+			amount = event.target.value;
+			
+			sendExchangeData(currencyID, amount);
+		}
+	}
+	
+	function sendExchangeData(currencyID, amount) {
+		console.log(currencyID + " " + amount);
+		
+		var allSymbols = ["USD","EUR","JPY","GBP","AUD","CAD","CNY","MXN"];
+		const index = allSymbols.indexOf(currencyID);
+		allSymbols.splice(index, 1);
+		
+		//?base=USD&symbols=EUR,JPY,GBP,AUD,CAD,CNY,MXN&amount=1
+		var paramString = "?" + "base=" + currencyID + "&symbols=" + allSymbols + "&amount=" + amount;
+		console.log(paramString);
+		
+		var requestURL = 'https://api.exchangerate.host/latest'; 
+		var request = new XMLHttpRequest(); 
+		request.open('GET', requestURL + paramString);
+		request.responseType = 'json';
+		var body = {
+			base: currencyID,
+			symbols: allSymbols,
+			amount: amount
+		};
+		console.log(body);
+		request.send(body);
+
+		request.onload = function() {
+		  var response = request.response;
+		  console.log(response);
+		  fillInInputValues(response.rates);
+		}
+		
+		
+	}
+	
+	function fillInInputValues(rates) {
+		const keys = Object.keys(rates);
+		keys.forEach((key) => {
+			let id = key + "value";
+			
+			const element = document.getElementById(id);
+			let newText = rates[key];
+			element.innerHTML = newText;
+			
+			document.getElementById("currencyForm").reset();
+		});
+	}
+</script>
+</body>
+</html>
